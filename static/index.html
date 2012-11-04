@@ -1,0 +1,52 @@
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<link href="css/eggplant/jquery-ui-1.9.1.custom.min.css" rel="stylesheet">
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+
+<title>hello david</title>
+</head>
+<body>
+<h1>这是我的测试页面</h1>
+<h2>start my web development</h2>
+<p> this is just a test</p>
+<div class="jclass" >
+    what can I do with div?
+    select class with .ClassName
+    and select id with #ID name
+</div>
+<div id="main_menu" >
+    this will be a menu later
+</div>
+
+<div id="text" onclick="$('#text').css('color','green');">
+    I am going to add jquery ui.
+</div>
+<h2 >Buttons</h2>
+<button id="button1">This is a button</button>
+<script type="text/javascript">
+    $("#button1").button();
+    $("#button1").click(function () {
+        $("#text").html("hello on click! <strong>loveyou</strong>");
+    });
+</script>
+<br/>
+<a href='test'>showing how to use directory</a>
+<br/>
+<a href='web.html'>a static html web page</a>
+<br/>
+<a href='echo/loveyou'>test echo 1</a>
+<br/>
+<a href='echo/loveme'>test echo 2</a>
+<br/>
+<code>hello world</code>
+<br/>
+<script type="text/javascript">
+$("p").css("color", "red");
+$(".jclass").css("color", "blue");
+$("#main_menu").css("color", "green");
+</script>
+</body>
+</html>
