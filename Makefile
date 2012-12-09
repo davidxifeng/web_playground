@@ -1,6 +1,6 @@
 #use this file as root
 all:
-	ghc --make -threaded myhappy.hs -o mw
+	ghc --make -threaded src/Main.hs -o mw
 	./mw &
 
 k:

@@ -5,3 +5,6 @@ cabal-dev
 *.hi
 *.chi
 *.chs.h
+.dist-buildwrapper
+.settings
+

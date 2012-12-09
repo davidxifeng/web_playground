@@ -1,0 +1,12 @@
+name:           david-happy
+version:        0.1
+cabal-version:  >= 1.2
+build-type:     Simple
+author:         david
+
+executable david-happy
+  hs-source-dirs:  src
+  main-is:         Main.hs
+  build-depends:   base >= 4, text, blaze-html, happstack-server, happstack-lite
+  ghc-options:     -Wall
+
