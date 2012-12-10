@@ -16,13 +16,20 @@ import Data.Text (Text)
 davidConf :: Conf
 davidConf = nullConf {port = 80}
 
+myPolicy :: BodyPolicy
+myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
+
+handlers :: ServerPart Response
+handlers = do
+        decodeBody myPolicy
+        msum [ dir "web" $ myFiles
+             , dir "echo" $ echo
+             , dir "form" $ myform
+             , myFiles ]
+
+
 main :: IO()
-main = simpleHTTP davidConf $ msum
-        [ dir "web" $ myFiles
-        , dir "echo" $ echo
-        , dir "form" $ myform
-        , myFiles
-        ]
+main = simpleHTTP davidConf handlers
 
 
 {-
