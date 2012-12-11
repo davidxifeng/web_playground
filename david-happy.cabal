@@ -9,6 +9,7 @@ executable david-happy
   main-is:         Main.hs
   build-depends:   base >= 4,
                    text, blaze-html, happstack-server, happstack-lite
+                   , mtl
   ghc-options:     -Wall
   extensions:      CPP
 

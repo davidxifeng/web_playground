@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Main where
-import Control.Monad (msum)
+import Control.Monad
+import Control.Monad.Trans
 import Happstack.Server
 --import Happstack.Lite
 
@@ -25,6 +26,7 @@ handlers = do
         msum [ dir "web" $ myFiles
              , dir "echo" $ echo
              , dir "form" $ myform
+             , dir "cookie" $ mycookie
              , myFiles ]
 
 
@@ -63,6 +65,21 @@ myform = msum [viewForm, processForm]
                 H.p "you said:"
                 H.p (toHtml msg)
                                 
+
+mycookie :: ServerPart Response
+mycookie = 
+    msum [ do rq <- askRq
+              liftIO $ print (rqPaths rq)
+              mzero
+         , do (requests::Int) <- readCookieValue "requests"
+              addCookie Session (mkCookie "requests" (show (requests + 1)))
+              ok $ template "cookie" $ do
+                        p $ toHtml (("you have made " ++ show requests ++ " requests to this page")::String)
+                        p $ "overloaded strings for Html type"
+         , do addCookie Session (mkCookie "requests" (show (2:: Int)))
+              ok $ template "cookie" $ "this is your first visit"
+         ]
+
 
 template :: Text -> Html -> Response
 template title bd = toResponse $
