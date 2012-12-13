@@ -69,7 +69,9 @@ myform = msum [viewForm, processForm]
 mycookie :: ServerPart Response
 mycookie = 
     msum [ do rq <- askRq
-              liftIO $ print (rqPaths rq)
+              --liftIO $ print (rqPaths rq)
+              --this line will failed after stdout not available after
+              --logout
               mzero
          , do (requests::Int) <- readCookieValue "requests"
               addCookie Session (mkCookie "requests" (show (requests + 1)))
