@@ -33,6 +33,7 @@ handlers = do
              , dir "form" $ myform
              , dir "heist" $ myheist
              , dir "cookie" $ mycookie
+             , dirs "hi/you" $ ok "dirs can use as shorthand"
              , myFiles ]
 
 
