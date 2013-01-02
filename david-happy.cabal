@@ -11,6 +11,11 @@ executable david-happy
                    text, blaze-html,
                    happstack-server >= 7.0.0 && < 7.2,
                    acid-state,
+
+                   happstack-heist,
+                   heist == 0.8.2,
+                   xmlhtml,
+
                    safecopy,
                    mtl
   ghc-options:     -Wall
