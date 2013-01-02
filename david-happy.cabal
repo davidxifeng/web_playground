@@ -8,8 +8,11 @@ executable david-happy
   hs-source-dirs:  src
   main-is:         Main.hs
   build-depends:   base >= 4,
-                   text, blaze-html, happstack-server, happstack-lite
-                   , mtl
+                   text, blaze-html,
+                   happstack-server >= 7.0.0 && < 7.2,
+                   acid-state,
+                   safecopy,
+                   mtl
   ghc-options:     -Wall
   extensions:      CPP
 

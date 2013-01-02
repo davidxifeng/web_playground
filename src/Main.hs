@@ -3,7 +3,6 @@ module Main where
 import Control.Monad
 import Control.Monad.Trans
 import Happstack.Server
---import Happstack.Lite
 
 import Text.Blaze.Html5 (Html(), (!), toHtml, a, p,  input)
 import qualified Text.Blaze.Html5 as H
@@ -13,6 +12,8 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 import Data.Text.Lazy (unpack)
 import Data.Text (Text)
+
+import TestAcid
 
 davidConf :: Conf
 davidConf = nullConf {port = 80}
@@ -33,19 +34,6 @@ handlers = do
 main :: IO()
 main = simpleHTTP davidConf handlers
 
-
-{-
-davidConf :: ServerConfig
-davidConf = ServerConfig 80 (1 * 10^6) (20 * 10^6) "/tmp/"
-
-main :: IO ()
-main = serve (Just davidConf) $ msum
-        [ dir "web" myFiles
-        , dir "echo" echo
-        , dir "form" myform
-        , myFiles
-        ]
--}
 myform :: ServerPart Response
 myform = msum [viewForm, processForm]
     where
