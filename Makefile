@@ -8,6 +8,8 @@ help:
 
 config:
 	cabal configure
+
+link:
 	ln -s dist/build/david-happy/david-happy web
 
 run:
