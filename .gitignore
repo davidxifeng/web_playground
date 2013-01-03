@@ -9,3 +9,6 @@ cabal-dev
 .settings
 
 test
+
+#vim的交换文件
+*.swp
