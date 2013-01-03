@@ -1,4 +1,7 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings
+  , ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, RecordWildCards
+  , TemplateHaskell, TypeFamilies #-}
 module Main where
 import Control.Monad
 import Happstack.Server
@@ -33,7 +36,8 @@ handlers = do
              , dir "form" $ myform
              , dir "heist" $ myheist
              , dir "cookie" $ mycookie
-             , dirs "hi/you" $ ok "dirs can use as shorthand"
+             , dirs "hi/you" $ ok $ template "test dirs"
+                (H.p "just show dirs's usage")
              , myFiles ]
 
 
@@ -62,14 +66,13 @@ mySplice = do
   return [X.Element (T.pack "em")([])([X.TextNode $ X.nodeText input])]
 
 
+-- logic free template Jan 04 00:01:51
 myheist :: ServerPart Response
 myheist = do
     td <- liftIO $ newTemplateDirectory' "static/tpls" (bindSplices ss defaultHeistState)
     templateServe td
-    -- msum [templateReloader td, templateServe td]
-    -- 会自动刷新,与文档不同,晕
+    -- msum[templateReloader td, templateServe td]
     -- msum[templateServe td, nullDir >> seeOther ("/index"::String) (toResponse ())]
-    -- 无需重定向
     where
     ss = [(T.pack "me", return [X.Element (T.pack "strong" ) ([])
                 ([X.TextNode $ T.pack "david happy feng"])])
