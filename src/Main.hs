@@ -39,6 +39,24 @@ import           Happstack.Server                        (BodyPolicy, Browsing (
                                                           toResponse)
 import qualified Text.XmlHtml                            as X
 
+-- 加入初步的acid-state支持
+import           Control.Applicative                     ((<$>))
+import           Control.Monad.Reader                    (ask)
+import           Control.Monad.State                     (get, put)
+import           Data.Acid                               (AcidState, Query,
+                                                          Update, makeAcidic)
+import           Data.Acid.Advanced                      (query', update')
+import           Data.Acid.Local                         (createCheckpointAndClose,
+                                                          openLocalState)
+import           Data.Data                               (Data, Typeable)
+import           Data.IxSet                              (Indexable (..),
+                                                          IxSet (..),
+                                                          Proxy (..), getOne,
+                                                          ixFun, ixSet, (@=))
+import qualified Data.IxSet                              as IxSet
+import           Data.SafeCopy                           (SafeCopy, base,
+                                                          deriveSafeCopy)
+
 import           System.Log.Formatter                    (simpleLogFormatter)
 import           System.Log.Handler                      (setFormatter)
 import           System.Log.Handler.Simple               (fileHandler)
@@ -49,6 +67,23 @@ import           System.Log.Logger                       (Priority (..), logM,
                                                           setHandlers, setLevel,
                                                           updateGlobalLogger)
 
+-- 需要把文件分成多个模块了...
+data ViewCount = ViewCount { count :: Integer }
+    deriving (Eq, Ord, Read, Show, Data, Typeable)
+
+$(deriveSafeCopy 0 'base ''ViewCount)
+
+aSetter :: Integer ->Update ViewCount Integer
+aSetter n = do
+    c@ViewCount{..} <- get
+    let newCount = count + n
+    put $ c { count = newCount }
+    return newCount
+
+aGetter :: Query ViewCount Integer
+aGetter = count <$> ask
+
+$(makeAcidic ''ViewCount ['aSetter, 'aGetter])
 
 davidConf :: Conf
 davidConf = nullConf {port = 80}
@@ -77,6 +112,7 @@ handlers :: ServerPart Response
 handlers = do
     msum [ dir "echo" $ echo
          , dir "form" $ myform
+         , dir "acid" $ myacid
          , dir "heist" $ myheist
          , dir "cookie" $ mycookie
          , dirs "hi/you" $ ok $ template "test dirs"
@@ -124,6 +160,22 @@ myheist = do
          ,(T.pack "you", mySplice)
          ,(T.pack "fact", factSplice)
          ]
+myacid :: ServerPart Response
+myacid = do
+    --just for a quick demo test
+    acid <- liftIO $ openLocalState (ViewCount 0)
+    --msum [realres acid, (none acid)]
+    msum [realres acid]
+    where
+    realres x = do
+        c <- liftIO $ query' x AGetter
+        r <- ok $ template "minamal acid demo" $
+                H.p $ toHtml (("view " ++ show c :: String))
+        liftIO $ (update' x (ASetter 2)) >> (createCheckpointAndClose x)
+        return r
+        
+
+
 
 myform :: ServerPart Response
 myform = do
