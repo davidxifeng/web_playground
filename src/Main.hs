@@ -161,7 +161,7 @@ mycookie =
 
 
 echo :: ServerPart Response
-echo = msum[ liftIO $ logM "test" INFO "response an echo" >> mzero
+echo = msum[ (liftIO $ logM "test" INFO "response an echo") >> mzero
             , echo'
             ]
 
