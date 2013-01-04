@@ -9,6 +9,7 @@ cabal-dev
 .settings
 
 test
+access.log
 
 #vim的交换文件
 *.swp

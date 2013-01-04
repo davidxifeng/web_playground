@@ -12,6 +12,14 @@ executable david-happy
                    happstack-server >= 7.0.0 && < 7.2,
                    acid-state,
 
+                   hslogger,
+
+                   -- time == 1.4,
+                   -- formatTime
+                   -- old-locale,
+                   -- 调试log时临时用到的包
+                   -- import System.Locale (defaultTimeLocale)
+
                    happstack-heist,
                    heist == 0.8.2,
                    xmlhtml,

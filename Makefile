@@ -16,4 +16,5 @@ run:
 	./web &
 
 kill:
-	pkill web
+	@echo "killing web..."
+	@pkill -SIGINT web
