@@ -45,12 +45,13 @@ import           Control.Monad.Reader                    (ask)
 import           Control.Monad.State                     (get, put)
 import           Data.Acid                               (AcidState, Query,
                                                           Update, makeAcidic)
+                                                          --, query
 import           Data.Acid.Advanced                      (query', update')
 import           Data.Acid.Local                         (createCheckpointAndClose,
                                                           openLocalState)
 import           Data.Data                               (Data, Typeable)
 import           Data.IxSet                              (Indexable (..),
-                                                          IxSet (..),
+                                                          IxSet,
                                                           Proxy (..), getOne,
                                                           ixFun, ixSet, (@=))
 import qualified Data.IxSet                              as IxSet
@@ -105,9 +106,6 @@ closeAction = do
     logM "web server" NOTICE "server is down"
 
 
-myPolicy :: BodyPolicy
-myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
-
 handlers :: ServerPart Response
 handlers = do
     msum [ dir "echo" $ echo
@@ -141,8 +139,8 @@ factSplice = do
 -- just replace custom tag you to em
 mySplice :: (Monad m) => HeistT m Template
 mySplice = do
-  input <- getParamNode
-  return [X.Element (T.pack "em")([])([X.TextNode $ X.nodeText input])]
+    input <- getParamNode
+    return [X.Element (T.pack "em")([])([X.TextNode $ X.nodeText input])]
 
 
 -- logic free template Jan 04 00:01:51
@@ -155,27 +153,31 @@ myheist = do
     -- msum[templateReloader td, templateServe td]
     -- msum[templateServe td, nullDir >> seeOther ("/index"::String) (toResponse ())]
     where
-    ss = [(T.pack "me", return [X.Element (T.pack "strong" ) ([])
+    ss = [(T.pack "me", return [X.Element (T.pack "strong") ([])
                 ([X.TextNode $ T.pack "david happy feng"])])
          ,(T.pack "you", mySplice)
          ,(T.pack "fact", factSplice)
          ]
+
+
 myacid :: ServerPart Response
 myacid = do
     --just for a quick demo test
     acid <- liftIO $ openLocalState (ViewCount 0)
     --msum [realres acid, (none acid)]
-    msum [realres acid]
+    realres acid
     where
     realres x = do
-        c <- liftIO $ query' x AGetter
+        -- c <- liftIO $ query x AGetter
+        c <- query' x AGetter
         r <- ok $ template "minamal acid demo" $
                 H.p $ toHtml (("view " ++ show c :: String))
-        liftIO $ (update' x (ASetter 2)) >> (createCheckpointAndClose x)
+        _ <- update' x (ASetter 2)
+        liftIO $ (createCheckpointAndClose x)
         return r
-        
 
-
+myPolicy :: BodyPolicy
+myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
 
 myform :: ServerPart Response
 myform = do
