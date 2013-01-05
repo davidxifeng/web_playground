@@ -1,0 +1,13 @@
+# Sun Jan  6 00:27:00 HKT 2013 ;-)
+
+User-agent: Googlebot
+Allow: /
+Disallow: /echo/*
+
+User-agent: *
+Allow: /
+Disallow: /echo/*
+
+User-agent: *
+Disallow: /
+

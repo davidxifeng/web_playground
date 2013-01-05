@@ -15,8 +15,6 @@
 </head>
 <body>
 <h1>这是我的测试页面</h1>
-<h2>start my web development david</h2>
-
 <form action="http://google.com/search" method="get">
     <fieldset role="search">
         <input type="hidden" name="q" value="site:davidlove.me" />
@@ -24,46 +22,42 @@
                 placeholder="在这里输入你想要搜索的内容来使用Google检索本站" />
     </fieldset>
 </form>
-
-<br/>
-<!-- 这个版本的happstack功能学习最后一次更新 Thu Jan 3 04:07:53 HKT 2013 -->
-<a href='heist'>test usage of heist</a>
-<br/>
-<a href='cookie'>test usage of cookie</a>
-<br/>
-<a href='test'>showing how to use directory</a>
-<br/>
-<a href='web.html'>a static html web page</a>
-<br/>
-<a href='form'>test form</a>
-<br/>
-<a href='echo/loveyou'>test echo 1</a>
-<br/>
-<a href='echo/loveme'>test echo 2</a>
-<br/>
-
-<code>hello world</code>
-
-<ul>todo 11.13 9:18
+<h2>start my web development david</h2>
+<div id="nav">
+    <nav role="navigation">
+        <ul class="main-nav">
+            <li><a href="/acid">测试acid-state的使用</a></li>
+            <li><a href='/heist'>test usage of heist</a></li>
+            <li><a href='/cookie'>test usage of cookie</a></li>
+            <li><a href='/test'>showing how to use directory</a></li>
+            <li><a href='/web.html'>a static html web page</a></li>
+            <li><a href='/form'>test form</a></li>
+            <li><a href='/echo/loveyou'>test echo</a></li>
+    </nav>
+</div>
+<div id="content">
+    <p class="blog">准备开始设计我的前端界面了,web服务器内容已经基本完成了.</p>
+    <p class="blog">昨天晚上把访问日志记录功能发布的,然后不久我就看到了百度爬虫和
+        Google机器人来访,感觉就像我的个人网站正式上线了一样...女朋友看过我的
+        网站后说,怎么这么简单,什么功能都没有...</p>
+    <p class="blog">这个时候我深刻的感觉到,'上线'后,网站内容是多么的重要,
+        想迫切的开始做前端开发:HTML CSS Javascript或者Fay...</p>
+    <p class="blog">时间已经不早了,准备回去睡觉了.这是这个网站第一段比较正式的
+        临时内容,希望会被尽快替换成一个比较正式的主页吧...</p>
+    <code>ps: 原来手写html的感觉没有那么差啊,特别是with vim</code>
+</div>
+<ul>
     <li>http login/auth</li>
     <li>comment / twitter like feature</li>
     <li>and more</li>
 </ul>
-<p> this is just a test</p>
 <div class="jclass" >
-    what can I do with div?
-    select class with .ClassName
-    and select id with #ID name
-</div>
-
-<div id="main_menu" >
-    this will be a menu later
+    select class with .classname, and select id with #id name
 </div>
 
 <div id="text" onclick="$('#text').css('color','green');">
     I am going to add jquery ui.
 </div>
-
 
 <br/>
 <script type="text/javascript">
