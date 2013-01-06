@@ -8,6 +8,3 @@ User-agent: *
 Allow: /
 Disallow: /echo/*
 
-User-agent: *
-Disallow: /
-
