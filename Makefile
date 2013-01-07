@@ -13,7 +13,7 @@ link:
 	ln -s dist/build/david-happy/david-happy web
 
 run:
-	./web &
+	authbind ./web &
 
 kill:
 	@echo "killing web..."
