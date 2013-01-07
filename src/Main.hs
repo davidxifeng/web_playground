@@ -224,6 +224,7 @@ echo' = path $ \(msg :: String) ->
         ok $ template "echo" $ do
                 p $ "echo: " >> toHtml msg
                 p "change to see something else"
+                p "测试使用authbind后的post hook"
 
 myFiles :: ServerPart Response
 myFiles = do
