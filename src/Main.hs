@@ -226,6 +226,7 @@ echo' = path $ \(msg :: String) ->
                 p "change to see something else"
                 p "测试使用authbind后的post hook"
                 p "再次测试,try use exec fix zoombie process"
+                p "why?"
 
 myFiles :: ServerPart Response
 myFiles = do
