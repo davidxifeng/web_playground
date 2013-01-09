@@ -1,41 +1,54 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>abc</title></head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <link href="css/eggplant/jquery-ui-1.9.1.custom.min.css" rel="stylesheet">
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery-ui.js"></script>
+
+    <title>javascript of Jan 8</title>
+</head>
 <body>
+    <h1>标题1</h1>
     <div>this is a test of direct push to d.me</div>
     <div>another a test</div>
-<h1>标题1</h1>
-hi2012-10-14 10:02:05
-<p>ddd</p>
+    <div class="t">hi2012-10-14 10:02:05</div>
+
+    <button id="btn1">para</button>
+    <p id="dc">new text</p>
+
+    <script type="text/javascript">
+        $("#btn1").click(
+            function(){
+                $("#btn1").css("color", "purple");
+                $("#dc").load(
+                    "echo/loveyou"
+                    //,function(){this;}
+                );
+            }
+        );
+    </script>
+    <p id="btn1">para</p>
 <ul>
-<li>abc</li>
-<li>def</li>
+    <li>abc</li>
+    <li>def</li>
 </ul>
 <ol>
-<li>abc</li>
-<li>def</li>
+    <li>abc</li>
+    <li>def</li>
 </ol>
 <table>
-<tr>
-<th>Header 1</th>
-<th>header 二</th>
-</tr>
-<tr>
-<td>数据1</td>
-<td>数据2</td>
-</tr>
+    <tr>
+        <th>Header 1</th>
+        <th>header 二</th>
+    </tr>
+    <tr>
+        <td>数据1</td>
+        <td>数据2</td>
+    </tr>
 </table>
 
 <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-37441068-1']);
-    _gaq.push(['_trackPageview']);
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
 </script>
 
 </body>
