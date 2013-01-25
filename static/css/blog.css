@@ -1,0 +1,57 @@
+@import url(//fonts.googleapis.com/css?family=Rosario);
+@import url(//fonts.googleapis.com/css?family=PT+Sans);
+
+body {
+    color: #444;
+    padding: 0;
+    margin: 0;
+    font: 16px/1.62 "Rosario", "Xin Gothic", "Hiragino Sans GB",
+    "Microsoft YaHei", "WenQuanYi Micro Hei", Arial, sans-serif;
+}
+
+#container {
+    margin: 0 auto;
+}
+#topbar {
+    width: auto;
+    height: 80px;
+    display: block;
+}
+#nav {
+    width: auto;
+    display: block;
+    height: 48px;
+    margin: 0 auto;
+    background: #f4f4f3;
+    z-index: 9;
+}
+#nav a {
+    font-weight: bold;
+    margin-right: 6px;
+    padding: 8px 10px;
+    line-height: 46px;
+    border-bottom: 46px;
+    border-bottom: 0 none;
+}
+#left {
+    width: 300px;
+    margin-right: 20px;
+    float: left;
+}
+#right {
+    width: 300px;
+    margin-right: 20px;
+    float: right;
+}
+#main {
+    width: auto;
+    display: block;
+    padding: 20px 0;
+}
+#footer {
+    width: auto;
+    display: block;
+    padding: 10px 0;
+    color:#666;
+}
+
