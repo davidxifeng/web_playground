@@ -18,3 +18,8 @@ run:
 kill:
 	@echo "killing web..."
 	@pkill -SIGINT web
+
+reload:
+	@echo "killing web..."
+	@pkill -SIGINT web
+	authbind ./web &

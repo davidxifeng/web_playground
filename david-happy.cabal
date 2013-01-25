@@ -24,9 +24,11 @@ executable david-happy
                    heist == 0.8.2,
                    ixset == 1.0.5,
                    xmlhtml,
-
                    safecopy,
-                   mtl
+                   mtl,
+                   time
+
   ghc-options:     -Wall
   extensions:      CPP
+  other-modules:   Blog
 
