@@ -116,11 +116,8 @@ myblog = do
     viewForm :: ServerPart Response
     viewForm =
         do method GET
-           --acid <- liftIO $ openLocalStateFrom "messageState"
-           --    (MessageDB (MessageId 1) empty)
            acid <- liftIO $ openLocalState (MessageDB (MessageId 1) empty)
            ml <- query' acid (GetMessage)
-           _ <- liftIO $ putStrLn $ "length of ml is " ++ (show $ length ml)
            r <- ok $ template "form" $ do
                H.p ! A.class_ "text-info" $ "get blog"
                simpleForm
@@ -133,17 +130,12 @@ myblog = do
         do method POST
            decodeBody myPolicy
            acid <- liftIO $ openLocalState (MessageDB (MessageId 1) empty)
-           -- acid <- liftIO $ openLocalStateFrom "messageState" (MessageDB (MessageId 1) empty)
            author' <- lookText' "author"
            msg' <- lookText' "message"
-           _ <- liftIO $ putStrLn (show author')
-           _ <- liftIO $ putStrLn (show msg')
            time' <- liftIO $ getCurrentTime
-           _ <- liftIO $ putStrLn (show time')
            let msg = Message (MessageId 1) author' msg' time'
            _ <- update' acid (NewMessage msg)
            ml <- query' acid (GetMessage)
-           _ <- liftIO $ putStrLn $ "length of ml is " ++ (show $ length ml)
            r <- ok $ template "blog demo" $ do
                 H.p ! A.class_ "text-error" $ "insert a new record to acid state"
                 simpleForm
