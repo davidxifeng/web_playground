@@ -12,7 +12,8 @@ module Blog
 import           Control.Exception           (bracket)
 import           Control.Monad               (msum, mzero)
 import           Control.Monad.Trans         (MonadIO, liftIO)
-import qualified Data.Text                   as T
+import           Data.Text                   (Text)
+import           Data.Text.Lazy              (toStrict)
 import           Text.Blaze.Html5            (Html (), a, p, toHtml, (!))
 import qualified Text.Blaze.Html5            as H
 import           Text.Blaze.Html5.Attributes (href)
@@ -36,7 +37,6 @@ import           Control.Monad.Reader        (ask)
 import           Control.Monad.State         (get, put)
 import           Data.Acid                   (AcidState, Query, Update,
                                               makeAcidic)
-                                                          --, query
 import           Data.Acid.Advanced          (query', update')
 import           Data.Acid.Local             (createCheckpointAndClose,
                                               openLocalState,
@@ -51,28 +51,63 @@ import           Data.Time                   (UTCTime (..), getCurrentTime)
 myPolicy :: BodyPolicy
 myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
 
-data Post = Post
-    { title     :: T.Text
-    , author    :: T.Text
-    , post      :: T.Text
-    --, time      :: UTCTime
+newtype MessageId = MessageId { unMessageId :: Integer }
+    deriving (Eq, Ord, Data, Enum, Typeable, SafeCopy)
+
+data Message = Message
+    { messageId     :: MessageId
+    , author    :: Text
+    , message      :: Text
+    , timestamp      :: UTCTime
     }
     deriving (Eq, Ord, Data, Typeable)
 
-$(deriveSafeCopy 0 'base ''Post)
+$(deriveSafeCopy 0 'base ''Message)
 
-setPost :: T.Text -> Update Post Post
-setPost t = do
-    l@Post{..} <- get
-    let ns = "Hello Acid"
-    put $ l { title = ns, author = "david", post = t}
-    return l
+newtype Author      = Author Text deriving (Eq, Ord, Data, Typeable, SafeCopy)
 
-getPost :: Query Post T.Text
-getPost = post <$> ask
+instance Indexable Message where
+    empty = ixSet [ ixFun $ \l -> [messageId l]
+                  , ixFun $ \l -> [Author $ author l]
+                  ]
 
-$(makeAcidic ''Post ['setPost, 'getPost])
+data MessageDB = MessageDB
+    { nextMessageId :: MessageId
+    , messages      :: IxSet Message
+    }
+    deriving (Data, Typeable)
 
+$(deriveSafeCopy 0 'base ''MessageDB)
+
+-- | 插入一条新的消息到数据库中
+newMessage :: Message -> Update MessageDB ()
+newMessage msg = do
+    md@MessageDB{..} <- get
+    put $ md { nextMessageId = MessageId 1
+             , messages      = IxSet.insert msg messages
+             }
+
+getMessage :: Query MessageDB [Message]
+getMessage = do
+    MessageDB{..} <- ask
+    return $ IxSet.toList messages
+
+$(makeAcidic ''MessageDB ['newMessage, 'getMessage])
+
+messageHtml :: Message -> Html
+messageHtml (Message{..}) =
+    H.div ! A.class_ "message" $ do
+        H.p ! A.class_ "text-info" $ do H.toHtml author >> "说:"
+        H.p ! A.class_ "text-info" $ H.toHtml message
+        H.p ! A.class_ "text-warning" $ do "at: " >> H.toHtml (show timestamp)
+        H.br
+
+simpleForm :: Html
+simpleForm = do
+    H.form ! A.action "/blog" ! A.enctype "multipart/form-data" ! A.method "POST" $ do
+        H.input ! A.type_ "text" ! A.id "author" ! A.name "author"
+        H.input ! A.type_ "text" ! A.id "message" ! A.name "message"
+        H.input ! A.type_ "submit" ! A.value "发表"
 
 myblog :: ServerPart Response
 myblog = do
@@ -81,32 +116,55 @@ myblog = do
     viewForm :: ServerPart Response
     viewForm =
         do method GET
-           acid <- liftIO $ openLocalStateFrom "blogState" (Post "a" "b" "c")
-           p <- query' acid GetPost
+           --acid <- liftIO $ openLocalStateFrom "messageState"
+           --    (MessageDB (MessageId 1) empty)
+           acid <- liftIO $ openLocalState (MessageDB (MessageId 1) empty)
+           ml <- query' acid (GetMessage)
+           _ <- liftIO $ putStrLn $ "length of ml is " ++ (show $ length ml)
+           r <- ok $ template "form" $ do
+               H.p ! A.class_ "text-info" $ "get blog"
+               simpleForm
+               mapM_ messageHtml ml
+               H.p ! A.class_ "text-info" $ "end of messages"
            liftIO $ createCheckpointAndClose acid
-           ok $ template "form" $
-               H.form ! A.action "/blog" ! A.enctype "multipart/form-data" !  A.method "POST" $ do
-                        H.label ! A.for "msg" $ "say you"
-                        H.input ! A.type_ "text" ! A.id "msg" ! A.name "msg"
-                        H.input ! A.type_ "submit" ! A.value "say it"
+           return r
     processForm :: ServerPart Response
     processForm =
         do method POST
            decodeBody myPolicy
-           acid <- liftIO $ openLocalStateFrom "blogState" (Post "a" "b" "c")
-           _ <- update' acid (SetPost "Hello Jack")
-           msg <- lookText "test"
+           acid <- liftIO $ openLocalState (MessageDB (MessageId 1) empty)
+           -- acid <- liftIO $ openLocalStateFrom "messageState" (MessageDB (MessageId 1) empty)
+           author' <- lookText' "author"
+           msg' <- lookText' "message"
+           _ <- liftIO $ putStrLn (show author')
+           _ <- liftIO $ putStrLn (show msg')
+           time' <- liftIO $ getCurrentTime
+           _ <- liftIO $ putStrLn (show time')
+           let msg = Message (MessageId 1) author' msg' time'
+           _ <- update' acid (NewMessage msg)
+           ml <- query' acid (GetMessage)
+           _ <- liftIO $ putStrLn $ "length of ml is " ++ (show $ length ml)
+           r <- ok $ template "blog demo" $ do
+                H.p ! A.class_ "text-error" $ "insert a new record to acid state"
+                simpleForm
+                mapM_ messageHtml ml
            liftIO $ createCheckpointAndClose acid
-           ok $ template "blog demo" $ do
-                H.p "generate a new record:"
-                H.p (toHtml msg)
+           return r
 
-template :: T.Text -> Html -> Response
+lookText' :: String -> ServerPart Text
+lookText' = fmap toStrict . lookText
+
+template :: Text -> Html -> Response
 template title bd = toResponse $
         H.html $ do
           H.head $ do
+            H.link ! A.rel "stylesheet" ! A.href "css/eggplant/jquery-ui-1.9.1.custom.min.css"
+            H.link ! A.rel "stylesheet" ! A.href "b/css/bootstrap.min.css"
+            H.link ! A.rel "stylesheet" ! A.href "b/css/bootstrap-responsive.min.css"
             H.title (toHtml title)
           H.body $ do
+                H.h1 "我的心情动态web系统"
+                p "一组动态div"
                 bd
                 p $ a ! href "/" $ "back to home"
-                
+

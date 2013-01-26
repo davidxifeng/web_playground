@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="author" content="david feng" />
+    <meta name="description"
+            content="david feng's homepage, for web development version 1" />
+    <link rel="stylesheet" href="css/eggplant/jquery-ui-1.9.1.custom.min.css" />
+    <script type="text/javascript" src="js/jquery.js" ></script>
+    <script type="text/javascript" src="js/jquery-ui.js" ></script>
+
+    <link rel="stylesheet" href="b/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="b/css/bootstrap-responsive.min.css" />
+
+    <script type="text/javascript" src="b/js/bootstrap.min.js" ></script>
+
+    <title>我的心情状态系统</title>
+</head>
+<body>
+    <div class="row">
+        <div class="span12">
+            <div class="page-header">
+                <h1>我的心情动态系统
+                    <br />
+                    <small>山寨一个非常简单的twitter页面</small>
+                </h1>
+            </div>
+            <div class="row">
+                <div class="span8">
+                    <div class="navbar">
+                        <div class="navbar-inner">
+                            <a class="brand" href="">博客</a>
+                            <ul class="nav">
+                                <li><a href="page2.html">生活</a></li>
+                                <li><a href="">工作</a></li>
+                                <li><a href="">关于</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span2">
+                <!-- sidebar-->
+                <ul class="nav nav-list">
+                    <li class="nav-header">博客列表</li>
+                    <li class="active">david</li>
+                    <!-- 水平分隔div -->
+                    <li class="divider"></li>
+                    <li class="nav-header">随笔列表</li>
+                    <li class="active">grace</li>
+                    <li class="active">lily</li>
+            </div>
+            <div class="span4">
+                <!-- body-->
+                <div>
+                    <p class="text-info">天天好心情!</p>
+                    <form action="blog" enctype="multipart/form-data"
+                            method="POST">
+                        <textarea cols="80" rows="8" name="message">
+                        </textarea>
+                        <br />
+                        <input type="text" name="author" id="author" />
+                        <br />
+                        <input type="submit" value="发表" />
+                    </form>
+                </div>
+            </div>
+            <div class="span6">
+                <div>
+                    <p class="text-info">西风说:</p>
+                    <p class="text-info">今天我学习并尝试做了一个简单的页面</p>
+                    <br />
+                </div>
+                <div>
+                    <p class="text-info">西风说:</p>
+                    <p class="text-info">今天我学习并尝试做了一个简单的页面</p>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
