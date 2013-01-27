@@ -3,7 +3,6 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Main where
@@ -44,16 +43,7 @@ import           Control.Applicative                     ((<$>))
 import           Control.Monad.Reader                    (ask)
 import           Control.Monad.State                     (get, put)
 
-import           System.Log.Formatter                    (simpleLogFormatter)
-import           System.Log.Handler                      (setFormatter)
-import           System.Log.Handler.Simple               (fileHandler)
--- 默认 >= warning才显示
--- DEBUG INFO NOTICE WARNING ERROR CRITICAL ALERT EMERGENCY
-import           System.Log.Logger                       (Priority (..), logM,
-                                                          rootLoggerName,
-                                                          setHandlers, setLevel,
-                                                          updateGlobalLogger)
-
+import           Log
 import           Blog
 
 davidConf :: Conf
@@ -72,19 +62,14 @@ openAction = do
     prepareLog
 
 closeAction :: IO ()
-closeAction = do
-    logM "web server" NOTICE "server is down"
+closeAction = return ()
 
 
 handlers :: ServerPart Response
 handlers = do
-    msum [ dir "echo" $ echo
-         , dir "form" $ myform
-         , dir "blog" $ myblog
+    msum [ dir "blog" $ myblog
          , dir "heist" $ myheist
          , dir "cookie" $ mycookie
-         , dirs "hi/you" $ ok $ template "test dirs"
-            (H.p "just show dirs's usage")
          , myFiles ]
 
 
@@ -129,32 +114,6 @@ myheist = do
          ,(T.pack "fact", factSplice)
          ]
 
-
-myPolicy :: BodyPolicy
-myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
-
-myform :: ServerPart Response
-myform = do
-    msum [viewForm, processForm]
-    where
-    viewForm :: ServerPart Response
-    viewForm =
-        do method GET
-           ok $ template "form" $
-               H.form ! A.action "/form" ! A.enctype "multipart/form-data" !  A.method "POST" $ do
-                        H.label ! A.for "msg" $ "say you"
-                        H.input ! A.type_ "text" ! A.id "msg" ! A.name "msg"
-                        H.input ! A.type_ "submit" ! A.value "say it"
-    processForm :: ServerPart Response
-    processForm =
-        do method POST
-           decodeBody myPolicy
-           msg <- lookText "msg"
-           ok $ template "form" $ do
-                H.p "you said:"
-                H.p (toHtml msg)
-
-
 mycookie :: ServerPart Response
 mycookie =
     msum [ do (requests::Int) <- readCookieValue "requests"
@@ -167,32 +126,6 @@ mycookie =
          ]
 
 
-
-echo :: ServerPart Response
-echo = msum[ (liftIO $ logM "test" INFO "response an echo") >> mzero
-            , echo'
-            ]
-
-echo' :: ServerPart Response
-echo' = path $ \(msg :: String) ->
-        ok $ template "echo" $ do
-                p $ "echo: " >> toHtml msg
-                p "change to see something else"
-                p "测试使用authbind后的post hook"
-                p "再次测试,try use exec fix zoombie process"
-                p "why?"
-
 myFiles :: ServerPart Response
 myFiles = do
         serveDirectory EnableBrowsing ["index.htm", "index.html"] "static/"
-
--- 目前方案:所有log都放到access.log里. 其实也可以单独为某一类log设定输出目标
-prepareLog :: IO ()
-prepareLog = do
-    h <- fileHandler "access.log" DEBUG
-    --logM rootLoggerName WARNING "this should logged to stderr"
-    h' <- return $ setFormatter h $
-        simpleLogFormatter "[$time : $loggername : $prio] thread id: $tid\n$msg"
-    --setHandlers: 用一个列表覆盖原有的
-    updateGlobalLogger rootLoggerName (setHandlers [h'] . setLevel INFO)
-    logM "web server" NOTICE "server is up"

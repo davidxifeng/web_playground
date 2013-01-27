@@ -30,5 +30,4 @@ executable david-happy
 
   ghc-options:     -Wall
   extensions:      CPP
-  other-modules:   Blog
 
