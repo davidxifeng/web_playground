@@ -23,11 +23,17 @@ executable david-happy
                    happstack-heist,
                    heist == 0.8.2,
                    ixset == 1.0.5,
+                   monad-control == 0.3.1.4,
                    xmlhtml,
+                   --transformers ,
+                   lifted-base == 0.2,
                    safecopy,
                    mtl,
                    time
 
   ghc-options:     -Wall
   extensions:      CPP
+  other-modules:   
+                   BlogTypes,
+                   Types
 
