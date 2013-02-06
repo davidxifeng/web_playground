@@ -9,56 +9,30 @@
 {-# LANGUAGE TypeFamilies               #-}
 
 module Main where
-import           Control.Exception (bracket)
-import           Control.Monad                           (MonadPlus, mplus,
-                                                          msum, mzero)
-import qualified Data.Text                               as T
-import           Text.Blaze.Html5                        (Html (), a, p, toHtml,
-                                                          (!))
-import qualified Text.Blaze.Html5                        as H
-import           Text.Blaze.Html5.Attributes             (href)
+import           Control.Exception           (bracket)
+import           Control.Monad               (msum)
+import           Control.Monad.Reader        (ReaderT (..))
+import qualified Data.Text                   as T
+import           Text.Blaze.Html5            (Html (), a, p, toHtml, (!))
+import qualified Text.Blaze.Html5            as H
+import           Text.Blaze.Html5.Attributes (href)
 
-import           Control.Monad.Reader                    (MonadReader,
-                                                          ReaderT (..), ask)
-import           Happstack.Server                        (BodyPolicy, Browsing (EnableBrowsing),
-                                                          Conf (port),
-                                                          CookieLife (Session),
-                                                          FilterMonad,
-                                                          Happstack, HasRqData,
-                                                          Method (GET, POST),
-                                                          Response, ServerMonad,
-                                                          ServerPart,
-                                                          ServerPartT, WebMonad,
-                                                          addCookie, decodeBody,
-                                                          defaultBodyPolicy,
-                                                          dir, dirs, lookText,
-                                                          mapServerPartT,
-                                                          method, mkCookie,
-                                                          nullConf, ok, path,
-                                                          readCookieValue,
-                                                          serveDirectory,
-                                                          simpleHTTP,
-                                                          toResponse)
-import           Log
+import           Happstack.Server            (Browsing (EnableBrowsing),
+                                              Conf (port), CookieLife (Session),
+                                              Response, ServerPartT, addCookie,
+                                              dir, mapServerPartT, mkCookie,
+                                              nullConf, ok, readCookieValue,
+                                              serveDirectory, simpleHTTP,
+                                              toResponse)
 
+import           Data.Acid.Local             (createCheckpointAndClose,
+                                              openLocalState)
 
-import           Data.Acid                               (AcidState,
-                                                          EventResult,
-                                                          EventState, IsAcidic,
-                                                          Query, QueryEvent,
-                                                          Update, UpdateEvent,
-                                                          makeAcidic)
-import           Data.Acid.Local                         (createCheckpointAndClose,
-                                                          openLocalState,
-                                                          openLocalStateFrom)
-
-import           Control.Applicative                     (Alternative,
-                                                          Applicative, (<$>))
-
+import           AppData
 import           Blog
 import           BlogTypes
-import           AppData
 import           Heist
+import           Log
 
 -- 工作目录下期待的文件夹: static/ static/tpls/
 -- 访问log记录位置 access.log

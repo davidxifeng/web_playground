@@ -16,36 +16,16 @@ import qualified Text.Blaze.Html5            as H
 import           Text.Blaze.Html5.Attributes (href)
 import qualified Text.Blaze.Html5.Attributes as A
 
-import           Happstack.Server            (BodyPolicy,
-                                              Browsing (EnableBrowsing),
-                                              Conf (port), CookieLife (Session),
-                                              Method (GET, POST), Response,
-                                              ServerPart, addCookie, decodeBody,
-                                              defaultBodyPolicy, dir, dirs,
-                                              lookText, method, mkCookie,
-                                              nullConf, ok, path,
-                                              readCookieValue, serveDirectory,
-                                              simpleHTTP, toResponse)
+import           Happstack.Server            (BodyPolicy, Method (GET, POST),
+                                              Response, decodeBody,
+                                              defaultBodyPolicy, lookText,
+                                              method, ok, toResponse)
 
--- 加入初步的acid-state支持
-import           Control.Monad.Reader        (ask)
-import           Control.Monad.State         (get, put)
-import           Data.Acid                   (AcidState, Query, Update,
-                                              makeAcidic)
-import           Data.Acid.Advanced          (query', update')
-import           Data.Acid.Local             (createCheckpointAndClose,
-                                              openLocalState,
-                                              openLocalStateFrom)
-import           Data.Data                   (Data, Typeable)
-import           Data.IxSet                  (Indexable (..), IxSet, Proxy (..),
-                                              getOne, ixFun, ixSet, (@=))
-import qualified Data.IxSet                  as IxSet
-import           Data.SafeCopy               (SafeCopy, base, deriveSafeCopy)
-import           Data.Time                   (UTCTime (..), getCurrentTime)
+import           Data.Time                   (getCurrentTime)
 
-import           BlogTypes
 import           Acid
 import           AppData
+import           BlogTypes
 
 myPolicy :: BodyPolicy
 myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)

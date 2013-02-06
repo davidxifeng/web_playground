@@ -9,8 +9,8 @@ module BlogTypes where
 
 import           Data.Acid            (Query, Update, makeAcidic)
 import           Data.Data            (Data, Typeable)
-import           Data.IxSet           (Indexable (..), IxSet, Proxy (..),
-                                       ixFun, ixSet, (@=))
+import           Data.IxSet           (Indexable (..), IxSet, Proxy (..), ixFun,
+                                       ixSet, (@=))
 import qualified Data.IxSet           as IxSet
 import           Data.SafeCopy        (SafeCopy, base, deriveSafeCopy)
 import           Data.Text            (Text)
