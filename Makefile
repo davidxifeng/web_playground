@@ -22,4 +22,5 @@ kill:
 reload:
 	@echo "killing web..."
 	@pkill -SIGINT web
+	@sleep 1
 	authbind ./web &
