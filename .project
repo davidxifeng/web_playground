@@ -30,9 +30,15 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.linuxtools.rpm.rpmlint.rpmlintBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>net.sf.eclipsefp.haskell.core.project.HaskellNature</nature>
+		<nature>org.eclipse.linuxtools.rpm.rpmlint.rpmlintNature</nature>
 	</natures>
 	<filteredResources>
 		<filter>

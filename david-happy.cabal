@@ -35,5 +35,6 @@ executable david-happy
   extensions:      CPP
   other-modules:   
                    BlogTypes,
-                   Types
+                   Types,
+                   Acid
 

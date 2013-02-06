@@ -44,6 +44,7 @@ import           Data.SafeCopy               (SafeCopy, base, deriveSafeCopy)
 import           Data.Time                   (UTCTime (..), getCurrentTime)
 
 import           BlogTypes
+import           Acid
 import           Types
 
 myPolicy :: BodyPolicy
@@ -72,32 +73,26 @@ myblog = do
     viewForm :: App Response
     viewForm =
         do method GET
-           acid <- liftIO $ openLocalState initMessageDB
-           ml <- query' acid (GetAllMessages)
-           r <- ok $ blogTemplate "form" $ do
+           messagesList <- query GetAllMessages
+           ok $ blogTemplate "form" $ do
                H.p ! A.class_ "text-info" $ "get blog"
                simpleForm
-               mapM_ messageHtml ml
+               mapM_ messageHtml messagesList
                H.p ! A.class_ "text-info" $ "end of messages"
-           liftIO $ createCheckpointAndClose acid
-           return r
     processForm :: App Response
     processForm =
         do method POST
            decodeBody myPolicy
-           acid <- liftIO $ openLocalState initMessageDB
            author' <- lookText' "author"
            msg' <- lookText' "message"
            time' <- liftIO $ getCurrentTime
            let msg = Message (MessageId 1) author' msg' False time'
-           _ <- update' acid (NewMessage msg)
-           ml <- query' acid (GetAllMessages)
-           r <- ok $ blogTemplate "blog demo" $ do
+           _ <- update (NewMessage msg)
+           messagesList <- query GetAllMessages
+           ok $ blogTemplate "blog demo" $ do
                 H.p ! A.class_ "text-error" $ "insert a new record to acid state"
                 simpleForm
-                mapM_ messageHtml ml
-           liftIO $ createCheckpointAndClose acid
-           return r
+                mapM_ messageHtml messagesList
 
 lookText' :: String -> App Text
 lookText' = fmap toStrict . lookText

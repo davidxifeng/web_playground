@@ -4,14 +4,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE RecordWildCards            #-}
+-- {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Main where
-import           Control.Exception                       (bracket)
-import qualified Control.Exception.Lifted                as Lifted
-
+import           Control.Exception.Lifted                (bracket)
 import           Control.Monad                           (MonadPlus, mplus,
                                                           msum, mzero)
 import           Control.Monad.Trans                     (MonadIO, liftIO)
@@ -39,9 +37,8 @@ import           Happstack.Server                        (BodyPolicy, Browsing (
                                                           Method (GET, POST),
                                                           Response, ServerMonad,
                                                           ServerPart,
-                                                          ServerPartT,
-                                                          WebMonad, addCookie,
-                                                          decodeBody,
+                                                          ServerPartT, WebMonad,
+                                                          addCookie, decodeBody,
                                                           defaultBodyPolicy,
                                                           dir, dirs, lookText,
                                                           mapServerPartT,
@@ -60,7 +57,6 @@ import           Data.Acid                               (AcidState,
                                                           Query, QueryEvent,
                                                           Update, UpdateEvent,
                                                           makeAcidic)
-import           Data.Acid.Advanced                      (query', update')
 import           Data.Acid.Local                         (createCheckpointAndClose,
                                                           openLocalState,
                                                           openLocalStateFrom)
@@ -71,56 +67,43 @@ import           Control.Applicative                     (Alternative,
                                                           Applicative, (<$>))
 import           Control.Monad.Trans.Control             (MonadBaseControl)
 
+import           Blog
+import           Acid
 import           BlogTypes
 import           Types
-import           Blog
 
 -- 工作目录下期待的文件夹: static/ static/tpls/
 -- 访问log记录位置 access.log
 
 main :: IO ()
 main = do
+    openAction
     withAcid (Just "state") $
         \acid -> simpleHTTP nullConf {port = 80} $ runApp acid handlers
+    closeAction
 
 --handlers :: ServerPart Response
 handlers :: App Response
-handlers = do
-    msum [ dir "blog" $ myblog
-         , dir "heist" $ myheist
-         , dir "cookie" $ mycookie
+handlers =
+    msum [ dir "blog" myblog
+         , dir "heist" myheist
+         , dir "cookie" mycookie
          , myFiles ]
 
 myFiles :: App Response
-myFiles = do
-        serveDirectory EnableBrowsing ["index.htm", "index.html"] "static/"
+myFiles = serveDirectory EnableBrowsing ["index.htm", "index.html"] "static/"
 
 data ServerApp m = ServerApp
     { unHeistState  :: TemplateDirectory m
     , unAcidState   :: AcidState MessageDB
     }
 
-class HasAcidState m st where
-   getAcidState :: m (AcidState st)
-
-query :: forall event m. ( Functor m , MonadIO m , QueryEvent event ,
-         HasAcidState m (EventState event)) => event -> m (EventResult event)
-query event = do
-    as <- getAcidState
-    query' (as :: AcidState (EventState event)) event
-
-
-update :: forall event m. ( Functor m , MonadIO m , UpdateEvent event ,
-    HasAcidState m (EventState event)) => event -> m (EventResult event)
-update event = do
-    as <- getAcidState
-    update' (as :: AcidState (EventState event)) event
 
 -- automatically creates a checkpoint on close
 withLocalState :: (MonadBaseControl IO m, MonadIO m, IsAcidic st, Typeable st) =>
                   Maybe FilePath -> st -> (AcidState st -> m a) -> m a
 withLocalState mPath initialState =
-    Lifted.bracket (liftIO $ (maybe openLocalState openLocalStateFrom mPath) initialState)
+    bracket (liftIO $ (maybe openLocalState openLocalStateFrom mPath) initialState)
             (liftIO . createCheckpointAndClose)
 
 -- getGreeting :: Query GreetingState Text
@@ -131,19 +114,14 @@ withLocalState mPath initialState =
 
 withAcid :: Maybe FilePath -> (Acid -> IO a) -> IO a
 withAcid mBasePath action =
-    let basePath = fromMaybe "state" mBasePath
-    in withLocalState (Just $ basePath) initMessageDB $ \c ->
-           action (Acid c)
-       --withLocalState (Just $ basePath </> "greeting") initialGreetingState $ \g ->
+    withLocalState (Just $ basePath) initMessageDB $ \c -> action (Acid c)
+    --withLocalState (Just $ basePath </> "greeting") initialGreetingState $ \g ->
+    where
+    basePath = fromMaybe "state" mBasePath
 
 
 runApp :: Acid -> App a -> ServerPartT IO a
 runApp acid (App sp) = mapServerPartT (flip runReaderT acid) sp
-
-instance HasAcidState App MessageDB where
-    getAcidState = messageDB <$> ask
---instance HasAcidState App GreetingState where
-    --getAcidState = acidGreetingState <$> ask
 
 template :: T.Text -> Html -> Response
 template title bd = toResponse $
