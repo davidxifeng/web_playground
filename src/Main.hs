@@ -9,23 +9,14 @@
 {-# LANGUAGE TypeFamilies               #-}
 
 module Main where
-import           Control.Exception.Lifted                (bracket)
+import           Control.Exception (bracket)
 import           Control.Monad                           (MonadPlus, mplus,
                                                           msum, mzero)
-import           Control.Monad.Trans                     (MonadIO, liftIO)
 import qualified Data.Text                               as T
-import           Happstack.Server.Heist                  (templateServe)
 import           Text.Blaze.Html5                        (Html (), a, p, toHtml,
                                                           (!))
 import qualified Text.Blaze.Html5                        as H
 import           Text.Blaze.Html5.Attributes             (href)
-import qualified Text.Blaze.Html5.Attributes             as A
-import           Text.Templating.Heist                   (HeistT, Template,
-                                                          bindSplices,
-                                                          defaultHeistState,
-                                                          getParamNode)
-import           Text.Templating.Heist.TemplateDirectory (TemplateDirectory,
-                                                          newTemplateDirectory')
 
 import           Control.Monad.Reader                    (MonadReader,
                                                           ReaderT (..), ask)
@@ -49,7 +40,7 @@ import           Happstack.Server                        (BodyPolicy, Browsing (
                                                           simpleHTTP,
                                                           toResponse)
 import           Log
-import qualified Text.XmlHtml                            as X
+
 
 import           Data.Acid                               (AcidState,
                                                           EventResult,
@@ -60,29 +51,40 @@ import           Data.Acid                               (AcidState,
 import           Data.Acid.Local                         (createCheckpointAndClose,
                                                           openLocalState,
                                                           openLocalStateFrom)
-import           Data.Data                               (Typeable)
-import           Data.Maybe                              (fromMaybe)
 
 import           Control.Applicative                     (Alternative,
                                                           Applicative, (<$>))
-import           Control.Monad.Trans.Control             (MonadBaseControl)
 
 import           Blog
-import           Acid
 import           BlogTypes
-import           Types
+import           AppData
+import           Heist
 
 -- 工作目录下期待的文件夹: static/ static/tpls/
 -- 访问log记录位置 access.log
 
 main :: IO ()
 main = do
-    openAction
-    withAcid (Just "state") $
-        \acid -> simpleHTTP nullConf {port = 80} $ runApp acid handlers
-    closeAction
+    bracket (openAction)
+            (\ appData -> closeAction appData)
+            (\ appData -> simpleHTTP nullConf {port = 80} $ runApp appData handlers)
 
---handlers :: ServerPart Response
+
+openAction :: IO AppData
+openAction = do
+    prepareLog
+    r <- openLocalState initMessageDB
+    td <- loadTpls
+    let appData = AppData r td
+    return appData
+
+closeAction :: AppData -> IO ()
+closeAction appData = do
+    createCheckpointAndClose $ messageDB appData
+
+runApp :: AppData -> App a -> ServerPartT IO a
+runApp acid (App sp) = mapServerPartT (flip runReaderT acid) sp
+
 handlers :: App Response
 handlers =
     msum [ dir "blog" myblog
@@ -92,36 +94,6 @@ handlers =
 
 myFiles :: App Response
 myFiles = serveDirectory EnableBrowsing ["index.htm", "index.html"] "static/"
-
-data ServerApp m = ServerApp
-    { unHeistState  :: TemplateDirectory m
-    , unAcidState   :: AcidState MessageDB
-    }
-
-
--- automatically creates a checkpoint on close
-withLocalState :: (MonadBaseControl IO m, MonadIO m, IsAcidic st, Typeable st) =>
-                  Maybe FilePath -> st -> (AcidState st -> m a) -> m a
-withLocalState mPath initialState =
-    bracket (liftIO $ (maybe openLocalState openLocalStateFrom mPath) initialState)
-            (liftIO . createCheckpointAndClose)
-
--- getGreeting :: Query GreetingState Text
--- getGreeting = _greeting <$> ask
--- $(makeAcidic ''GreetingState ['getGreeting, 'setGreeting])
-
-
-
-withAcid :: Maybe FilePath -> (Acid -> IO a) -> IO a
-withAcid mBasePath action =
-    withLocalState (Just $ basePath) initMessageDB $ \c -> action (Acid c)
-    --withLocalState (Just $ basePath </> "greeting") initialGreetingState $ \g ->
-    where
-    basePath = fromMaybe "state" mBasePath
-
-
-runApp :: Acid -> App a -> ServerPartT IO a
-runApp acid (App sp) = mapServerPartT (flip runReaderT acid) sp
 
 template :: T.Text -> Html -> Response
 template title bd = toResponse $
@@ -133,37 +105,6 @@ template title bd = toResponse $
                 p $ a ! href "/" $ "back to home"
 
 
--- a demo from happstack tutorial
-factSplice :: (Monad m) => HeistT m Template
-factSplice = do
-    input <- getParamNode
-    let text = T.unpack $ X.nodeText input
-        n    = read text :: Int
-    return [X.TextNode $ T.pack $ show $ product [1..n]]
-
--- just replace custom tag you to em
-mySplice :: (Monad m) => HeistT m Template
-mySplice = do
-    input <- getParamNode
-    return [X.Element (T.pack "em")([])([X.TextNode $ X.nodeText input])]
-
-
--- logic free template Jan 04 00:01:51
-myheist :: App Response
-myheist = do
-    td <- liftIO $ newTemplateDirectory' "static/tpls" (bindSplices ss defaultHeistState)
-    -- 原来添加默认路径处理的功能是这个函数实现的,nullDir render index
-    -- 否则获取路径,然后render
-    templateServe td
-    -- msum[templateReloader td, templateServe td]
-    -- msum[templateServe td, nullDir >> seeOther ("/index"::String) (toResponse ())]
-    where
-    ss = [(T.pack "me", return [X.Element (T.pack "strong") ([])
-                ([X.TextNode $ T.pack "david happy feng"])])
-         ,(T.pack "you", mySplice)
-         ,(T.pack "fact", factSplice)
-         ]
-
 mycookie :: App Response
 mycookie =
     msum [ do (requests::Int) <- readCookieValue "requests"
@@ -174,10 +115,3 @@ mycookie =
          , do addCookie Session (mkCookie "requests" (show (2:: Int)))
               ok $ template "cookie" $ "this is your first visit"
          ]
-
-openAction :: IO ()
-openAction = do
-    prepareLog
-
-closeAction :: IO ()
-closeAction = return ()

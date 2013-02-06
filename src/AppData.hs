@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 
-module Types where
+module AppData where
 
 import           Control.Monad.Reader (MonadReader, ReaderT, ask)
 import           Happstack.Server     (FilterMonad, Happstack, HasRqData,
@@ -14,17 +14,24 @@ import           Control.Monad        (MonadPlus)
 import           Control.Monad.Trans  (MonadIO)
 import           Data.Acid            (AcidState)
 
+import           Text.Templating.Heist.TemplateDirectory (TemplateDirectory)
+
 import           Acid
 import           BlogTypes
 
 
-newtype App a = App { unApp :: ServerPartT (ReaderT Acid IO) a }
+newtype App a = App
+    { unApp :: ServerPartT (ReaderT AppData IO) a
+    }
     deriving ( Functor, Alternative, Applicative, Monad, MonadPlus, MonadIO
-               , HasRqData, ServerMonad ,WebMonad Response, FilterMonad Response
-               , Happstack, MonadReader Acid)
+             , HasRqData, ServerMonad ,WebMonad Response, FilterMonad Response
+             , Happstack, MonadReader AppData
+             )
 
-data Acid = Acid { messageDB    :: AcidState MessageDB
-                 }
+data AppData = AppData
+    { messageDB    :: AcidState MessageDB
+    , unHeistState  :: TemplateDirectory App
+    }
 
 instance HasAcidState App MessageDB where
     getAcidState = messageDB <$> ask

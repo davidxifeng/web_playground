@@ -45,7 +45,7 @@ import           Data.Time                   (UTCTime (..), getCurrentTime)
 
 import           BlogTypes
 import           Acid
-import           Types
+import           AppData
 
 myPolicy :: BodyPolicy
 myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
