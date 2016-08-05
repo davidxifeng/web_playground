@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="vue demo">
+    <title>vue demo</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <script src="node_modules/vue-router/dist/vue-router.js"></script>
+  </head>
+  <body>
+    <div id='router'>
+      <h1>vue router test</h1>
+        <p>
+          <a v-link="{ path: '/foo' }">Go to Foo</a>
+          <a v-link="{ path: '/bar' }">Go to Bar</a>
+        </p>
+        <router-view></router-view>
+    </div>
+    <script src="js/test.js" type="text/javascript"></script>
+  </body>
+</html>
